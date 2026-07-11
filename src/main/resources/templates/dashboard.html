@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ecommerce Pedidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <div class="bg-orbs">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="/dashboard" class="navbar-brand">
+                <div class="brand-icon">📦</div>
+                <h2>Pedidos Service</h2>
+            </a>
+
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" th:text="${name}">Usuario</div>
+                        <div class="user-email" th:text="${email}">email@example.com</div>
+                    </div>
+                    <div th:if="${picture != null}">
+                        <img th:src="${picture}" alt="Avatar" class="user-avatar">
+                    </div>
+                    <div th:if="${picture == null}" class="user-avatar-placeholder" th:text="${#strings.abbreviate(name, 2)}">
+                        US
+                    </div>
+                </div>
+
+                <form th:action="@{/logout}" method="post" style="display:inline">
+                    <button type="submit" class="btn-logout">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:middle; margin-right:4px;">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Sair
+                    </button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h1>Bem-vindo, <span th:text="${name}">Usuario</span></h1>
+                <p>Painel de gestao do microservico de pedidos</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value">Ativo</div>
+                    <div class="stat-label">Servico de Pedidos</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon cyan">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value">Kafka</div>
+                    <div class="stat-label">Filas de Mensagens</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-value">OIDC</div>
+                    <div class="stat-label">Autenticacao OpenID Connect</div>
+                </div>
+            </div>
+
+            <!-- Panels -->
+            <div class="panels-grid">
+                <!-- User Info Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Informacoes do Usuario</h3>
+                        <span class="badge badge-success">Autenticado</span>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="info-list">
+                            <li>
+                                <span class="label">Nome</span>
+                                <span class="value" th:text="${name}">-</span>
+                            </li>
+                            <li>
+                                <span class="label">Email</span>
+                                <span class="value" th:text="${email}">-</span>
+                            </li>
+                            <li>
+                                <span class="label">Roles</span>
+                                <div class="roles-list">
+                                    <span th:each="role : ${roles}" class="badge badge-primary"
+                                          th:text="${role.authority}">ROLE_USER</span>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="label">Autenticacao</span>
+                                <span class="badge badge-accent">OAuth 2.0 / OIDC</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Service Info Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Servico</h3>
+                        <span class="badge badge-primary">v1.0.0</span>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="info-list">
+                            <li>
+                                <span class="label">Nome</span>
+                                <span class="value">Ecommerce Pedidos Service</span>
+                            </li>
+                            <li>
+                                <span class="label">Framework</span>
+                                <span class="value">Spring Boot 3.3.5</span>
+                            </li>
+                            <li>
+                                <span class="label">Arquitetura</span>
+                                <span class="value">Hexagonal</span>
+                            </li>
+                            <li>
+                                <span class="label">Mensageria</span>
+                                <span class="value">Apache Kafka</span>
+                            </li>
+                            <li>
+                                <span class="label">Seguranca</span>
+                                <span class="value">Spring Security + OAuth2</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="panel" style="margin-bottom: 24px;">
+                <div class="panel-header">
+                    <h3>Acoes Rapidas</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="actions-grid">
+                        <a href="/pedidos/recebidos" class="action-card">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21"/>
+                                    <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                            </div>
+                            <div class="action-label">Pedidos Recebidos</div>
+                            <div class="action-desc">Lista de pedidos processados</div>
+                        </a>
+
+                        <a href="/pedidos/dlt" class="action-card">
+                            <div class="action-icon" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <div class="action-label">DLT (Erros)</div>
+                            <div class="action-desc">Mensagens com falha</div>
+                        </a>
+
+                        <a href="/actuator/health" class="action-card" target="_blank">
+                            <div class="action-icon" style="background: rgba(34, 197, 94, 0.12); color: #86efac;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                </svg>
+                            </div>
+                            <div class="action-label">Health Check</div>
+                            <div class="action-desc">Status do servico</div>
+                        </a>
+
+                        <a href="/actuator/prometheus" class="action-card" target="_blank">
+                            <div class="action-icon" style="background: rgba(245, 158, 11, 0.12); color: #fcd34d;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                            </div>
+                            <div class="action-label">Metricas</div>
+                            <div class="action-desc">Prometheus metrics</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dashboard-footer">
+            Ecommerce Pedidos Service &mdash; Microservico com Spring Boot, Kafka e Arquitetura Hexagonal
+        </div>
+    </div>
+</body>
+</html>

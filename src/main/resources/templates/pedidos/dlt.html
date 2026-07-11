@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLT (Erros) - Ecommerce Pedidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    <style>
+        .error-hero {
+            background: var(--bg-card); border: 1px solid var(--glass-border);
+            border-radius: var(--radius); padding: 32px; margin-bottom: 28px;
+            display: flex; gap: 24px; align-items: center; animation: slideUp 0.5s ease-out;
+        }
+        .error-hero-icon {
+            width: 72px; height: 72px; border-radius: 20px; display: flex;
+            align-items: center; justify-content: center; flex-shrink: 0;
+            background: rgba(239,68,68,0.12); color: #fca5a5;
+        }
+        .error-hero-info h2 { font-size: 1.3rem; margin-bottom: 6px; }
+        .error-hero-info p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+        .error-table-container {
+            background: var(--bg-card); border: 1px solid var(--glass-border);
+            border-radius: var(--radius); overflow: hidden;
+        }
+        .error-table-header {
+            padding: 18px 24px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .error-table-header h3 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .error-table-header .dot {
+            width: 8px; height: 8px; border-radius: 50%; background: #ef4444;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead { background: rgba(255,255,255,0.03); }
+        .data-table th {
+            padding: 13px 20px; text-align: left; font-size: 0.75rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table td {
+            padding: 13px 20px; border-bottom: 1px solid var(--border); font-size: 0.88rem;
+        }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .data-table tbody tr:hover { background: rgba(239,68,68,0.03); }
+        .motivo-text {
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+            color: #fca5a5; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 500;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary); background: var(--glass); padding: 3px 8px; border-radius: 6px; }
+        .hint-card {
+            margin-top: 24px; padding: 20px 24px; background: var(--bg-card);
+            border: 1px solid var(--glass-border); border-radius: var(--radius);
+            animation: slideUp 0.7s ease-out;
+        }
+        .hint-card h4 { font-size: 0.92rem; margin-bottom: 12px; color: var(--primary-light); display: flex; align-items: center; gap: 8px; }
+        .hint-card pre {
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+            color: var(--text-secondary); overflow-x: auto; line-height: 1.6; margin: 0;
+        }
+        .hint-card pre .comment { color: var(--text-muted); }
+        .hint-card pre .cmd { color: var(--accent); }
+        .hint-card pre .flag { color: var(--primary-light); }
+    </style>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <div class="bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <a th:href="@{/dashboard}" class="navbar-brand">
+                <div class="brand-icon">📦</div>
+                <h2>Pedidos Service</h2>
+            </a>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" th:text="${name}">Usuario</div>
+                        <div class="user-email" th:text="${email}">email</div>
+                    </div>
+                    <div class="user-avatar-placeholder" th:text="${#strings.abbreviate(name, 3)}">US</div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="display:inline">
+                    <button type="submit" class="btn-logout">Sair</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div>
+                    <a th:href="@{/dashboard}" class="breadcrumb">&larr; Dashboard</a>
+                    <h1>Dead Letter Topic (DLT)</h1>
+                    <p>Mensagens que falharam no processamento e foram para a fila de erros</p>
+                </div>
+                <div class="page-header-right">
+                    <span class="stat-badge red" th:text="${totalDlt} + ' erro(s)'">0 erro(s)</span>
+                </div>
+            </div>
+
+            <!-- Hero info -->
+            <div class="error-hero">
+                <div class="error-hero-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div class="error-hero-info">
+                    <h2>O que e a DLT?</h2>
+                    <p>Quando uma mensagem falha no processamento (ex: <code class="mono">clienteId = 999</code>),
+                    apos as tentativas de retry, ela e enviada para a Dead Letter Topic.
+                    Use o form em <strong>Pedidos Recebidos</strong> com <code class="mono">clienteId = 999</code> para testar.</p>
+                </div>
+            </div>
+
+            <!-- Tabela de Erros -->
+            <div class="error-table-container">
+                <div class="error-table-header">
+                    <h3>
+                        <span class="dot"></span>
+                        Mensagens com Falha
+                    </h3>
+                    <span class="stat-badge red" th:text="${totalDlt} + ' registro(s)'">0 registro(s)</span>
+                </div>
+
+                <div th:if="${#lists.isEmpty(mensagens)}" style="text-align:center; padding:48px 20px;">
+                    <div style="width:64px; height:64px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:rgba(34,197,94,0.12); color:#86efac; margin-bottom:16px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <h3 style="margin-bottom:6px; font-size:1.05rem; color:#86efac;">Nenhuma mensagem com falha</h3>
+                    <p style="color:var(--text-muted); font-size:0.88rem;">Todas as mensagens foram processadas com sucesso.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(mensagens)}">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Pedido ID</th>
+                                <th>Cliente ID</th>
+                                <th>Valor</th>
+                                <th>Motivo da Falha</th>
+                                <th>Recebido Em</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="msg : ${mensagens}">
+                                <td><span class="badge badge-primary" th:text="${msg.event.pedidoId}">456</span></td>
+                                <td><span class="badge badge-red" th:text="${msg.event.clienteId}">999</span></td>
+                                <td th:text="'R$ ' + ${#numbers.formatDecimal(msg.event.valor, 1, 2, 'COMMA')}">R$ 150,00</td>
+                                <td><span class="motivo-text" th:text="${msg.motivo}">Erro simulado</span></td>
+                                <td th:text="${#temporals.format(msg.recebidoEm, 'dd/MM/yyyy HH:mm:ss')}">01/01/2025 12:00:00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Comando curl de teste -->
+            <div class="hint-card">
+                <h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+                    </svg>
+                    Testar via Terminal
+                </h4>
+<pre>
+<span class="comment"># Enviar pedido que vai falhar (clienteId = 999)</span>
+<span class="cmd">curl</span> <span class="flag">-X POST</span> http://localhost:8080/pedidos \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"pedidoId": 456, "clienteId": 999, "valor": 150.00}'
+
+<span class="comment"># Aguardar ~10 segundos e consultar a DLT</span>
+<span class="cmd">curl</span> http://localhost:8080/pedidos/dlt
+</pre>
+            </div>
+        </div>
+
+        <div class="dashboard-footer">Ecommerce Pedidos Service &mdash; Dead Letter Topic (DLT)</div>
+    </div>
+</body>
+</html>

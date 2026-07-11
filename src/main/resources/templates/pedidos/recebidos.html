@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos Recebidos - Ecommerce Pedidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    <style>
+        .create-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 28px;
+            animation: slideUp 0.5s ease-out;
+        }
+        .create-card-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .create-card-header .icon-box {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white; font-size: 18px; flex-shrink: 0;
+        }
+        .create-card-header h3 { font-size: 1.05rem; font-weight: 600; }
+        .create-card-header p { color: var(--text-muted); font-size: 0.82rem; margin-top: 2px; }
+        .create-card-body { padding: 28px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 16px; align-items: end; }
+        .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px; }
+        .form-group input {
+            width: 100%; padding: 12px 14px; background: var(--glass); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.92rem; font-family: inherit; outline: none; transition: all 0.2s;
+        }
+        .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        .form-group input::placeholder { color: var(--text-muted); }
+        .btn-send {
+            padding: 12px 28px; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; border: none; border-radius: var(--radius-sm); font-size: 0.92rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 8px; font-family: inherit;
+        }
+        .btn-send:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.35); }
+        .btn-dlt {
+            padding: 12px 28px; background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white; border: none; border-radius: var(--radius-sm); font-size: 0.92rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 8px; font-family: inherit;
+        }
+        .btn-dlt:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(239,68,68,0.35); }
+        .alert-toast {
+            padding: 16px 20px; border-radius: var(--radius-sm); font-size: 0.88rem;
+            display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .alert-toast.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
+        .alert-toast.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
+        .response-card {
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            padding: 16px 20px; margin-top: 16px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem; color: var(--accent); line-height: 1.7; white-space: pre-wrap;
+        }
+        .table-container {
+            background: var(--bg-card); border: 1px solid var(--glass-border);
+            border-radius: var(--radius); overflow: hidden;
+        }
+        .table-header {
+            padding: 18px 24px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .table-header h3 { font-size: 1rem; font-weight: 600; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead { background: rgba(255,255,255,0.03); }
+        .data-table th {
+            padding: 13px 20px; text-align: left; font-size: 0.75rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table td {
+            padding: 13px 20px; border-bottom: 1px solid var(--border); font-size: 0.88rem;
+        }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .data-table tbody tr:hover { background: rgba(99,102,241,0.04); }
+        .valor-cell { color: #86efac; font-weight: 600; }
+        .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary); background: var(--glass); padding: 3px 8px; border-radius: 6px; }
+        .hint-box {
+            margin-top: 16px; padding: 14px 18px; background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.2); border-radius: var(--radius-sm);
+            font-size: 0.82rem; color: #fcd34d; display: flex; align-items: flex-start; gap: 10px;
+        }
+        .hint-box code {
+            background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+        }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <div class="bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <a th:href="@{/dashboard}" class="navbar-brand">
+                <div class="brand-icon">📦</div>
+                <h2>Pedidos Service</h2>
+            </a>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" th:text="${name}">Usuario</div>
+                        <div class="user-email" th:text="${email}">email</div>
+                    </div>
+                    <div class="user-avatar-placeholder" th:text="${#strings.abbreviate(name, 3)}">US</div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="display:inline">
+                    <button type="submit" class="btn-logout">Sair</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div>
+                    <a th:href="@{/dashboard}" class="breadcrumb">&larr; Dashboard</a>
+                    <h1>Pedidos Recebidos</h1>
+                    <p>Publique novos pedidos no Kafka e acompanhe os processados</p>
+                </div>
+                <div class="page-header-right">
+                    <span class="stat-badge blue" th:text="${totalPedidos} + ' pedidos'">0 pedidos</span>
+                </div>
+            </div>
+
+            <!-- Alert de sucesso/erro -->
+            <div th:if="${sucesso != null and sucesso}" class="alert-toast success">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <div>
+                    <strong th:text="${mensagemSucesso}">Pedido publicado!</strong>
+                    <div th:if="${resultadoJson != null}" class="response-card" th:text="${resultadoJson}">response</div>
+                </div>
+            </div>
+
+            <div th:if="${sucesso != null and !sucesso}" class="alert-toast error">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                <div>
+                    <strong th:text="${mensagemErro}">Erro ao publicar pedido</strong>
+                </div>
+            </div>
+
+            <!-- Formulario Criar Pedido -->
+            <div class="create-card">
+                <div class="create-card-header">
+                    <div class="icon-box">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3>Novo Pedido</h3>
+                        <p>Preencha os campos e publique diretamente no Kafka</p>
+                    </div>
+                </div>
+                <div class="create-card-body">
+                    <form th:action="@{/app/pedidos/criar}" method="post">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="pedidoId">Pedido ID</label>
+                                <input type="number" id="pedidoId" name="pedidoId" value="123" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clienteId">Cliente ID</label>
+                                <input type="number" id="clienteId" name="clienteId" value="10" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="valor">Valor (R$)</label>
+                                <input type="number" id="valor" name="valor" value="250.00" min="0.01" step="0.01" required>
+                            </div>
+                            <button type="submit" class="btn-send">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                                Publicar
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="hint-box">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px;">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        <div>
+                            <strong>Dica:</strong> Use <code>clienteId = 999</code> para testar retry e DLT automaticamente.
+                            Apos enviar, aguarde ~10 segundos e consulte a pagina de DLT.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Pedidos -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Pedidos Processados</h3>
+                    <span class="stat-badge blue" th:text="${totalPedidos} + ' registro(s)'">0 registro(s)</span>
+                </div>
+
+                <div th:if="${#lists.isEmpty(pedidos)}" style="text-align:center; padding:48px 20px;">
+                    <div style="width:64px; height:64px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:rgba(99,102,241,0.12); color:var(--primary-light); margin-bottom:16px;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                    </div>
+                    <h3 style="margin-bottom:6px; font-size:1.05rem;">Nenhum pedido processado</h3>
+                    <p style="color:var(--text-muted); font-size:0.88rem;">Publique um pedido acima para ve-lo aparecer aqui.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(pedidos)}">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Pedido ID</th>
+                                <th>Cliente ID</th>
+                                <th>Valor</th>
+                                <th>Event ID</th>
+                                <th>Criado Em</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="pedido : ${pedidos}">
+                                <td><span class="badge badge-primary" th:text="${pedido.pedidoId}">123</span></td>
+                                <td th:text="${pedido.clienteId}">10</td>
+                                <td class="valor-cell" th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valor, 1, 2, 'COMMA')}">R$ 250,00</td>
+                                <td><code class="mono" th:text="${#strings.abbreviate(pedido.eventId, 20)}">uuid</code></td>
+                                <td th:text="${#temporals.format(pedido.criadoEm, 'dd/MM/yyyy HH:mm:ss')}">01/01/2025 12:00:00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-footer">Ecommerce Pedidos Service &mdash; Pedidos recebidos via Kafka</div>
+    </div>
+</body>
+</html>

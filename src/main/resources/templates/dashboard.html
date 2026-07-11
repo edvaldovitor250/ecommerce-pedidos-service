@@ -36,7 +36,7 @@
                     <div th:if="${picture != null}">
                         <img th:src="${picture}" alt="Avatar" class="user-avatar">
                     </div>
-                    <div th:if="${picture == null}" class="user-avatar-placeholder" th:text="${#strings.abbreviate(name, 2)}">
+                    <div th:if="${picture == null}" class="user-avatar-placeholder" th:text="${#strings.abbreviate(name, 3)}">
                         US
                     </div>
                 </div>
@@ -71,8 +71,8 @@
                             <path d="M16 10a4 4 0 0 1-8 0"/>
                         </svg>
                     </div>
-                    <div class="stat-value">Ativo</div>
-                    <div class="stat-label">Servico de Pedidos</div>
+                    <div class="stat-value" th:text="${totalPedidos}">0</div>
+                    <div class="stat-label">Pedidos Recebidos</div>
                 </div>
 
                 <div class="stat-card">
@@ -81,8 +81,8 @@
                             <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                         </svg>
                     </div>
-                    <div class="stat-value">Kafka</div>
-                    <div class="stat-label">Filas de Mensagens</div>
+                    <div class="stat-value" th:text="${totalDlt}">0</div>
+                    <div class="stat-label">Mensagens com Falha (DLT)</div>
                 </div>
 
                 <div class="stat-card">
@@ -91,8 +91,8 @@
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
                     </div>
-                    <div class="stat-value">OIDC</div>
-                    <div class="stat-label">Autenticacao OpenID Connect</div>
+                    <div class="stat-value" th:text="${healthStatus}">DOWN</div>
+                    <div class="stat-label">Health Status</div>
                 </div>
             </div>
 
@@ -169,7 +169,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="actions-grid">
-                        <a href="/pedidos/recebidos" class="action-card">
+                        <a th:href="@{/app/pedidos/recebidos}" class="action-card">
                             <div class="action-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
@@ -178,10 +178,10 @@
                                 </svg>
                             </div>
                             <div class="action-label">Pedidos Recebidos</div>
-                            <div class="action-desc">Lista de pedidos processados</div>
+                            <div class="action-desc" th:text="${totalPedidos} + ' pedidos'">0 pedidos</div>
                         </a>
 
-                        <a href="/pedidos/dlt" class="action-card">
+                        <a th:href="@{/app/pedidos/dlt}" class="action-card">
                             <div class="action-icon" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -190,20 +190,20 @@
                                 </svg>
                             </div>
                             <div class="action-label">DLT (Erros)</div>
-                            <div class="action-desc">Mensagens com falha</div>
+                            <div class="action-desc" th:text="${totalDlt} + ' erros'">0 erros</div>
                         </a>
 
-                        <a href="/actuator/health" class="action-card" target="_blank">
+                        <a th:href="@{/app/health}" class="action-card">
                             <div class="action-icon" style="background: rgba(34, 197, 94, 0.12); color: #86efac;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                                 </svg>
                             </div>
                             <div class="action-label">Health Check</div>
-                            <div class="action-desc">Status do servico</div>
+                            <div class="action-desc" th:text="'Status: ' + ${healthStatus}">Status: DOWN</div>
                         </a>
 
-                        <a href="/actuator/prometheus" class="action-card" target="_blank">
+                        <a th:href="@{/app/metrics}" class="action-card">
                             <div class="action-icon" style="background: rgba(245, 158, 11, 0.12); color: #fcd34d;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>

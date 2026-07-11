@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check - Ecommerce Pedidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    <style>
+        .health-overall {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            margin-bottom: 28px;
+            animation: slideUp 0.5s ease-out;
+        }
+        .health-overall .status-dot {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .health-overall .status-dot.up {
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+        }
+        .health-overall .status-dot.down {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+        .health-overall h2 {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+        .health-overall p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .component-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
+        .component-card-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .component-card-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .component-card-body {
+            padding: 16px 22px;
+        }
+        .component-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .component-detail:last-child {
+            border-bottom: none;
+        }
+        .component-detail .label {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+        .component-detail .value {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+            max-width: 60%;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <div class="bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <a th:href="@{/dashboard}" class="navbar-brand">
+                <div class="brand-icon">📦</div>
+                <h2>Pedidos Service</h2>
+            </a>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" th:text="${name}">Usuario</div>
+                        <div class="user-email" th:text="${email}">email</div>
+                    </div>
+                    <div class="user-avatar-placeholder" th:text="${#strings.abbreviate(name, 3)}">US</div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="display:inline">
+                    <button type="submit" class="btn-logout">Sair</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div>
+                    <a th:href="@{/dashboard}" class="breadcrumb">&larr; Dashboard</a>
+                    <h1>Health Check</h1>
+                    <p>Status dos componentes do servico via Spring Boot Actuator</p>
+                </div>
+            </div>
+
+            <div class="health-overall">
+                <div th:class="'status-dot ' + (${overallStatus == 'UP'} ? 'up' : 'down')">
+                    <span th:if="${overallStatus == 'UP'}">&#10003;</span>
+                    <span th:if="${overallStatus != 'UP'}">&#10007;</span>
+                </div>
+                <div>
+                    <h2 th:text="'Status Geral: ' + ${overallStatus}">Status Geral: UP</h2>
+                    <p th:text="'Componentes verificados: ' + ${#maps.size(components)}">Componentes verificados: 0</p>
+                </div>
+                <div style="margin-left:auto;">
+                    <span class="stat-badge" th:classappend="${overallStatus == 'UP'} ? 'green' : 'red'"
+                          th:text="${overallStatus}">UP</span>
+                </div>
+            </div>
+
+            <div class="component-grid">
+                <div th:each="entry : ${components}" class="component-card">
+                    <div class="component-card-header">
+                        <h3 th:text="${entry.key}">Component</h3>
+                        <span class="stat-badge"
+                              th:classappend="${entry.value.status == 'UP'} ? 'green' : 'red'"
+                              th:text="${entry.value.status}">UP</span>
+                    </div>
+                    <div class="component-card-body">
+                        <div th:each="detail : ${entry.value}"
+                             th:if="${detail.key != 'status'}"
+                             class="component-detail">
+                            <span class="label" th:text="${detail.key}">key</span>
+                            <span class="value" th:text="${detail.value}">value</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-footer">Ecommerce Pedidos Service &mdash; Spring Boot Actuator Health</div>
+    </div>
+</body>
+</html>

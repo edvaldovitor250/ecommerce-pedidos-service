@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ecommerce-pedidos-service
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+    admin:
+      auto-create: true
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
+
+    consumer:
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:pedido-service-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "com.example.ecommerce.pedidos.domain.event"
+        spring.json.value.default.type: "com.example.ecommerce.pedidos.domain.event.PedidoCriadoEvent"
+
+    listener:
+      ack-mode: record
+      missing-topics-fatal: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+app:
+  kafka:
+    topics:
+      pedido-criado: ${APP_KAFKA_TOPIC_PEDIDO_CRIADO:pedido-criado}
+  processing:
+    fail-when-cliente-id: ${APP_PROCESSING_FAIL_WHEN_CLIENTE_ID:999}
